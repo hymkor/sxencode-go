@@ -12,5 +12,8 @@ test-oki:
 test-sbcl:
 	go run example.go | sbcl --load "test-sbcl.lsp"
 
+test-marshal:
+	go run example-marshal.go | gmnlisp test.lsp
+
 example:
 	go run example.go
