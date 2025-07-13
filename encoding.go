@@ -32,9 +32,11 @@ type Sexpressioner interface {
 
 func (enc *Encoder) encode(value reflect.Value) {
 	k := value.Kind()
-	if v, ok := value.Interface().(Sexpressioner); ok {
-		io.WriteString(enc.w, v.Sexpression())
-		return
+	if value.CanInterface() {
+		if v, ok := value.Interface().(Sexpressioner); ok {
+			io.WriteString(enc.w, v.Sexpression())
+			return
+		}
 	}
 	switch k {
 	case reflect.Interface, reflect.Pointer:
