@@ -20,7 +20,7 @@
       (field key (cdr m)))))
 
 (let ((data (read (standard-input) nil nil)))
-  (test (field 'struct-name data) 'Foo)
+  (test (field 'struct data) 'Foo)
   (test (field 'name data) "hogehoge")
   (test (field 'value data) 0.1)
   (test (field 'array data) '(1 2 3 4))
@@ -30,7 +30,7 @@
     (test (field "ufufu" m) 3)))
 
 (let ((data (read (standard-input) nil nil)))
-  (test (field 'struct-name data) 'Encoder)
+  (test (field 'struct data) 'Encoder)
   (test (field 'arrayheader data) "")
   (test (field 'arrayindex data) nil)
   (test (field 'typenotfound data) ""))

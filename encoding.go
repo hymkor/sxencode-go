@@ -35,7 +35,7 @@ func (enc *Encoder) encode(value reflect.Value) {
 		types := value.Type()
 		enc.writeByte('(')
 		if name := types.Name(); name != "" {
-			fmt.Fprintf(enc.w, "(struct-name %s)", name)
+			fmt.Fprintf(enc.w, "(struct %s)", name)
 		}
 		fields := reflect.VisibleFields(types)
 		for i, t := range fields {
