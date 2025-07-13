@@ -9,5 +9,8 @@ test-oki:
 	go run example.go > sample.log
 	echo "(load \"test-oki.lsp\")" | islisp
 
+test-sbcl:
+	go run example.go | sbcl --load "test-sbcl.lsp"
+
 example:
 	go run example.go
