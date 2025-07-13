@@ -54,9 +54,10 @@ func main() {
 
 The output of the above program is a pair of S-expressions representing the encoded data:
 
-```make example
-((struct-name Foo)(Name "hogehoge")(Value 0.1)(Array (1 2 3 4))(Map (("ahaha" 1)("ihihi" 2)("ufufu" 3))))
-((struct-name Encoder)(ArrayHeader "")(ArrayIndex nil)(TypeNotFound ""))
+```make example|
+go run example.go
+((struct Foo)(Name "hogehoge")(Value 0.1)(Array (1 2 3 4))(Map (("ahaha" 1)("ihihi" 2)("ufufu" 3))))
+((struct Encoder)(ArrayHeader "")(ArrayIndex nil)(TypeNotFound ""))
 ```
 
 This output is valid and can be read by a variety of Lisp systems.
@@ -77,14 +78,14 @@ SBCL is free software, provided as is, with absolutely no warranty.
 It is mostly in the public domain; some portions are provided under
 BSD-style licenses.  See the CREDITS and COPYING files in the
 distribution for more information.
-PASS: (test (FIELD 'STRUCT-NAME DATA) FOO)
+PASS: (test (FIELD 'STRUCT DATA) FOO)
 PASS: (test (FIELD 'NAME DATA) "hogehoge")
 PASS: (test (FIELD 'VALUE DATA) 0.1)
 PASS: (test (FIELD 'ARRAY DATA) (1 2 3 4))
 PASS: (test (FIELD "ahaha" M) 1)
 PASS: (test (FIELD "ihihi" M) 2)
 PASS: (test (FIELD "ufufu" M) 3)
-PASS: (test (FIELD 'STRUCT-NAME DATA) ENCODER)
+PASS: (test (FIELD 'STRUCT DATA) ENCODER)
 PASS: (test (FIELD 'ARRAYHEADER DATA) "")
 PASS: (test (FIELD 'ARRAYINDEX DATA) NIL)
 PASS: (test (FIELD 'TYPENOTFOUND DATA) "")
