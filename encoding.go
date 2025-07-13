@@ -26,8 +26,16 @@ func (enc *Encoder) writeString(s string) (int, error) {
 	return io.WriteString(enc.w, s)
 }
 
+type Sexpressioner interface {
+	Sexpression() string
+}
+
 func (enc *Encoder) encode(value reflect.Value) {
 	k := value.Kind()
+	if v, ok := value.Interface().(Sexpressioner); ok {
+		io.WriteString(enc.w, v.Sexpression())
+		return
+	}
 	switch k {
 	case reflect.Interface, reflect.Pointer:
 		enc.encode(value.Elem())
