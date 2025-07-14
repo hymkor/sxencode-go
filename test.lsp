@@ -21,13 +21,15 @@
 
 (let ((data (read (standard-input) nil nil)))
   (test (field 'struct data) 'Foo)
-  (test (field 'name data) "hogehoge")
-  (test (field 'value data) 0.1)
-  (test (field 'array data) '(1 2 3 4))
-  (let ((m (field 'map data)))
+  (test (field 'bar data) "hogehoge")
+  (test (field 'baz data) 0.1)
+  (test (field 'qux data) '(1 2 3 4))
+  (let ((m (field 'quux data)))
     (test (field "ahaha" m) 1)
     (test (field "ihihi" m) 2)
-    (test (field "ufufu" m) 3)))
+    (test (field "ufufu" m) 3))
+  (test (field 'quuux data) "a\"\\
+	b"))
 
 (let ((data (read (standard-input) nil nil)))
   (test (field 'struct data) 'Encoder)

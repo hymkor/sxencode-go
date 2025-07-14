@@ -11,23 +11,22 @@ import (
 
 func main() {
 	type Foo struct {
-		Name  string
-		Value float64
-		Array []int
-		Map   map[string]int
+		Bar   string
+		Baz   float64
+		Qux   []int
+		Quux  map[string]int
+		Quuux string
 	}
 
 	value := &Foo{
-		Name:  "hogehoge",
-		Value: 0.1,
-		Array: []int{1, 2, 3, 4},
-		Map:   map[string]int{"ahaha": 1, "ihihi": 2, "ufufu": 3},
+		Bar:   "hogehoge",
+		Baz:   0.1,
+		Qux:   []int{1, 2, 3, 4},
+		Quux:  map[string]int{"ahaha": 1, "ihihi": 2, "ufufu": 3},
+		Quuux: "a\"\\\n\tb",
 	}
 
 	enc := sxencode.NewEncoder(os.Stdout)
-	// enc.ArrayHeader = "array"
-	// enc.ArrayIndex = true
-	// enc.TypeNotFound = "type-not-found"
 
 	enc.Encode(value)
 	fmt.Println()
