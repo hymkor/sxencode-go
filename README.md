@@ -63,7 +63,7 @@ go run example.go
 ### Output Format
 
 * A struct is encoded as a list beginning with `(struct <TypeName>)`, followed by pairs of field name and value:
-  Example: `((struct Foo)(Name "hogehoge") ...)`.
+  Example: `((struct Foo)(Bar "hogehoge") ...)`.
   The field names and type name are emitted as symbols, making them easy to extract with `(assoc)` in Lisp.
 
 * A map is encoded as a list of `(key value)` pairs.
