@@ -18,7 +18,7 @@ import (
     "fmt"
     "os"
 
-    "github.com/hymkor/sxencode"
+    "github.com/hymkor/sxencode-go"
 )
 
 func main() {
