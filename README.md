@@ -23,23 +23,22 @@ import (
 
 func main() {
     type Foo struct {
-        Name  string
-        Value float64
-        Array []int
-        Map   map[string]int
+        Bar   string
+        Baz   float64
+        Qux   []int
+        Quux  map[string]int
+        Quuux string
     }
 
     value := &Foo{
-        Name:  "hogehoge",
-        Value: 0.1,
-        Array: []int{1, 2, 3, 4},
-        Map:   map[string]int{"ahaha": 1, "ihihi": 2, "ufufu": 3},
+        Bar:   "hogehoge",
+        Baz:   0.1,
+        Qux:   []int{1, 2, 3, 4},
+        Quux:  map[string]int{"ahaha": 1, "ihihi": 2, "ufufu": 3},
+        Quuux: "a\"\\\n\tb",
     }
 
     enc := sxencode.NewEncoder(os.Stdout)
-    // enc.ArrayHeader = "array"
-    // enc.ArrayIndex = true
-    // enc.TypeNotFound = "type-not-found"
 
     enc.Encode(value)
     fmt.Println()
@@ -56,7 +55,8 @@ The output of the above program is a pair of S-expressions representing the enco
 
 ```make example|
 go run example.go
-((struct Foo)(Name "hogehoge")(Value 0.1)(Array (1 2 3 4))(Map (("ahaha" 1)("ihihi" 2)("ufufu" 3))))
+((struct Foo)(Bar "hogehoge")(Baz 0.1)(Qux (1 2 3 4))(Quux (("ahaha" 1)("ihihi" 2)("ufufu" 3)))(Quuux "a\"\\
+    b"))
 ((struct Encoder)(ArrayHeader "")(ArrayIndex nil)(TypeNotFound ""))
 ```
 
@@ -90,12 +90,14 @@ It is mostly in the public domain; some portions are provided under
 BSD-style licenses.  See the CREDITS and COPYING files in the
 distribution for more information.
 PASS: (test (FIELD 'STRUCT DATA) FOO)
-PASS: (test (FIELD 'NAME DATA) "hogehoge")
-PASS: (test (FIELD 'VALUE DATA) 0.1)
-PASS: (test (FIELD 'ARRAY DATA) (1 2 3 4))
+PASS: (test (FIELD 'BAR DATA) "hogehoge")
+PASS: (test (FIELD 'BAZ DATA) 0.1)
+PASS: (test (FIELD 'QUX DATA) (1 2 3 4))
 PASS: (test (FIELD "ahaha" M) 1)
 PASS: (test (FIELD "ihihi" M) 2)
 PASS: (test (FIELD "ufufu" M) 3)
+PASS: (test (FIELD 'QUUUX DATA) "a\"\\
+    b")
 PASS: (test (FIELD 'STRUCT DATA) ENCODER)
 PASS: (test (FIELD 'ARRAYHEADER DATA) "")
 PASS: (test (FIELD 'ARRAYINDEX DATA) NIL)
