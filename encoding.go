@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"reflect"
+	"strings"
 )
 
 type Encoder struct {
@@ -29,6 +30,11 @@ func (enc *Encoder) writeString(s string) (int, error) {
 type Sexpressioner interface {
 	Sexpression() string
 }
+
+var toLispString = strings.NewReplacer(
+	`"`, `\"`,
+	`\`, `\\`,
+)
 
 func (enc *Encoder) encode(value reflect.Value) {
 	k := value.Kind()
@@ -57,7 +63,9 @@ func (enc *Encoder) encode(value reflect.Value) {
 		}
 		enc.writeByte(')')
 	case reflect.String:
-		fmt.Fprintf(enc.w, "%#v", value.String())
+		enc.writeByte('"')
+		io.WriteString(enc.w, toLispString.Replace(value.String()))
+		enc.writeByte('"')
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 		fmt.Fprint(enc.w, value.Int())
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
