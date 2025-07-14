@@ -60,8 +60,19 @@ go run example.go
 ((struct Encoder)(ArrayHeader "")(ArrayIndex nil)(TypeNotFound ""))
 ```
 
-This output is valid and can be read by a variety of Lisp systems.
+### Output Format
 
+* A struct is encoded as a list beginning with `(struct <TypeName>)`, followed by pairs of field name and value:
+  Example: `((struct Foo)(Name "hogehoge") ...)`.
+  The field names and type name are emitted as symbols, making them easy to extract with `(assoc)` in Lisp.
+
+* A map is encoded as a list of `(key value)` pairs.
+  If the keys are strings, note that in many Lisp dialects, `(assoc)` with a string key won't match unless `equal` is used.
+  For this reason, helper functions like `field` (shown later) may be necessary.
+
+* A slice or array is encoded as a plain list of elements: `(1 2 3 4)`.
+
+These conventions make it easy to parse the output in various Lisp systems while retaining structural information.
 
 ## Reading the output in SBCL
 
