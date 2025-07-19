@@ -9,8 +9,6 @@ import (
 
 type Encoder struct {
 	w            io.Writer
-	ArrayHeader  string
-	ArrayIndex   bool
 	TypeNotFound string
 }
 
@@ -73,22 +71,11 @@ func (enc *Encoder) encode(value reflect.Value) {
 	case reflect.Float32, reflect.Float64:
 		fmt.Fprint(enc.w, value.Float())
 	case reflect.Array, reflect.Slice:
-		if enc.ArrayHeader != "" {
-			fmt.Fprintf(enc.w, "(%s ", enc.ArrayHeader)
-		} else {
-			enc.writeString("#(")
-			// enc.writeByte('(')
-		}
+		enc.writeString("#(")
 		if n := value.Len(); n > 0 {
 			i := 0
 			for {
-				if enc.ArrayIndex {
-					fmt.Fprintf(enc.w, "(%d ", i)
-					enc.encode(value.Index(i))
-					enc.writeByte(')')
-				} else {
-					enc.encode(value.Index(i))
-				}
+				enc.encode(value.Index(i))
 				if i++; i >= n {
 					break
 				}
