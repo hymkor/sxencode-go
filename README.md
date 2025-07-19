@@ -57,7 +57,7 @@ The output of the above program is a pair of S-expressions representing the enco
 go run example.go
 ((struct Foo)(Bar "hogehoge")(Baz 0.1)(Qux #(1 2 3 4))(Quux (("ahaha" 1)("ihihi" 2)("ufufu" 3)))(Quuux "a\"\\
     b"))
-((struct Encoder)(ArrayHeader "")(ArrayIndex nil)(TypeNotFound ""))
+((struct Encoder)(TypeNotFound ""))
 ```
 
 ### Output Format
@@ -99,8 +99,6 @@ PASS: (test (FIELD "ufufu" M) 3)
 PASS: (test (FIELD 'QUUUX DATA) "a\"\\
     b")
 PASS: (test (FIELD 'STRUCT DATA) ENCODER)
-PASS: (test (FIELD 'ARRAYHEADER DATA) "")
-PASS: (test (FIELD 'ARRAYINDEX DATA) NIL)
 PASS: (test (FIELD 'TYPENOTFOUND DATA) "")
 * 
 ```
