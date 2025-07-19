@@ -1,6 +1,7 @@
 ### Jul 20, 2025
 
 - Use the vector literal `#(...)` for slices and arrays
+- Remove the fields: `ArrayHeader` and `ArrayIndex` from `Encoder`
 
 ### Jul 15, 2025
 
