@@ -55,7 +55,7 @@ The output of the above program is a pair of S-expressions representing the enco
 
 ```make example|
 go run example.go
-((struct Foo)(Bar "hogehoge")(Baz 0.1)(Qux (1 2 3 4))(Quux (("ahaha" 1)("ihihi" 2)("ufufu" 3)))(Quuux "a\"\\
+((struct Foo)(Bar "hogehoge")(Baz 0.1)(Qux #(1 2 3 4))(Quux (("ahaha" 1)("ihihi" 2)("ufufu" 3)))(Quuux "a\"\\
     b"))
 ((struct Encoder)(ArrayHeader "")(ArrayIndex nil)(TypeNotFound ""))
 ```
@@ -70,7 +70,7 @@ go run example.go
   If the keys are strings, note that in many Lisp dialects, `(assoc)` with a string key won't match unless `equal` is used.
   For this reason, helper functions like `field` (shown later) may be necessary.
 
-* A slice or array is encoded as a plain list of elements: `(1 2 3 4)`.
+* A slice or array is encoded using vector notation: `#(1 2 3 4)`.
 
 These conventions make it easy to parse the output in various Lisp systems while retaining structural information.
 
@@ -92,7 +92,7 @@ distribution for more information.
 PASS: (test (FIELD 'STRUCT DATA) FOO)
 PASS: (test (FIELD 'BAR DATA) "hogehoge")
 PASS: (test (FIELD 'BAZ DATA) 0.1)
-PASS: (test (FIELD 'QUX DATA) (1 2 3 4))
+PASS: (test (FIELD 'QUX DATA) #(1 2 3 4))
 PASS: (test (FIELD "ahaha" M) 1)
 PASS: (test (FIELD "ihihi" M) 2)
 PASS: (test (FIELD "ufufu" M) 3)
