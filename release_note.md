@@ -1,3 +1,9 @@
+### Jul 20, 2025
+
+- Use the vector literal `#(...)` for slices and arrays
+
+### Jul 15, 2025
+
 - Only `"` and `\` are escaped in string literals; other control characters (such as \n, \t, \r, etc.) are now output as raw characters
 
 ### Jul 14, 2025
