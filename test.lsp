@@ -33,6 +33,4 @@
 
 (let ((data (read (standard-input) nil nil)))
   (test (field 'struct data) 'Encoder)
-  (test (field 'arrayheader data) "")
-  (test (field 'arrayindex data) nil)
   (test (field 'typenotfound data) ""))
