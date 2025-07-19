@@ -76,7 +76,8 @@ func (enc *Encoder) encode(value reflect.Value) {
 		if enc.ArrayHeader != "" {
 			fmt.Fprintf(enc.w, "(%s ", enc.ArrayHeader)
 		} else {
-			enc.writeByte('(')
+			enc.writeString("#(")
+			// enc.writeByte('(')
 		}
 		if n := value.Len(); n > 0 {
 			i := 0
