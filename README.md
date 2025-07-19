@@ -109,7 +109,8 @@ These are the supporting Lisp files used for the SBCL test:
 
 #### `test-sbcl.lsp`
 
-```lisp
+```test-sbcl.lsp
+;; Define compatibility functions to match ISLisp's standard input/output access
 (defun standard-input () *standard-input*)
 (defun standard-output () t)
 (load "test.lsp")
@@ -117,11 +118,11 @@ These are the supporting Lisp files used for the SBCL test:
 
 #### `test.lsp`
 
-```lisp
+```test.lsp
 (defmacro test (source expect)
   (let ((result (gensym)))
     `(let ((,result ,source))
-       (if (equal ,result ,expect)
+       (if (equalp ,result ,expect)
            (format (standard-output) "PASS: (test ~S ~S)~%"
                    (quote ,source)
                    ,expect)
@@ -140,19 +141,19 @@ These are the supporting Lisp files used for the SBCL test:
       (field key (cdr m)))))
 
 (let ((data (read (standard-input) nil nil)))
-  (test (field 'struct-name data) 'Foo)
-  (test (field 'name data) "hogehoge")
-  (test (field 'value data) 0.1)
-  (test (field 'array data) '(1 2 3 4))
-  (let ((m (field 'map data)))
+  (test (field 'struct data) 'Foo)
+  (test (field 'bar data) "hogehoge")
+  (test (field 'baz data) 0.1)
+  (test (field 'qux data) #(1 2 3 4))
+  (let ((m (field 'quux data)))
     (test (field "ahaha" m) 1)
     (test (field "ihihi" m) 2)
-    (test (field "ufufu" m) 3)))
+    (test (field "ufufu" m) 3))
+  (test (field 'quuux data) "a\"\\
+    b"))
 
 (let ((data (read (standard-input) nil nil)))
-  (test (field 'struct-name data) 'Encoder)
-  (test (field 'arrayheader data) "")
-  (test (field 'arrayindex data) nil)
+  (test (field 'struct data) 'Encoder)
   (test (field 'typenotfound data) ""))
 ```
 
@@ -168,19 +169,21 @@ echo "(load \"test-oki.lsp\")" | islisp
 
 Execution result:
 
-```
+```make test-oki|
+go run example.go > sample.log
+echo "(load \"test-oki.lsp\")" | islisp
 > ISLisp  Version 0.80 (1999/02/25)
 >
-ISLisp>PASS: (test (FIELD (QUOTE STRUCT-NAME) DATA) FOO)
-PASS: (test (FIELD (QUOTE NAME) DATA) "hogehoge")
-PASS: (test (FIELD (QUOTE VALUE) DATA) 0.1)
-PASS: (test (FIELD (QUOTE ARRAY) DATA) (1 2 3 4))
+ISLisp>PASS: (test (FIELD (QUOTE STRUCT) DATA) FOO)
+PASS: (test (FIELD (QUOTE BAR) DATA) "hogehoge")
+PASS: (test (FIELD (QUOTE BAZ) DATA) 0.1)
+PASS: (test (FIELD (QUOTE QUX) DATA) #(1 2 3 4))
 PASS: (test (FIELD "ahaha" M) 1)
 PASS: (test (FIELD "ihihi" M) 2)
 PASS: (test (FIELD "ufufu" M) 3)
-PASS: (test (FIELD (QUOTE STRUCT-NAME) DATA) ENCODER)
-PASS: (test (FIELD (QUOTE ARRAYHEADER) DATA) "")
-PASS: (test (FIELD (QUOTE ARRAYINDEX) DATA) NIL)
+PASS: (test (FIELD (QUOTE QUUUX) DATA) "a\"\\
+    b")
+PASS: (test (FIELD (QUOTE STRUCT) DATA) ENCODER)
 PASS: (test (FIELD (QUOTE TYPENOTFOUND) DATA) "")
 T
 ISLisp>
@@ -188,7 +191,10 @@ ISLisp>
 
 #### `test-oki.lsp`
 
-```lisp
+```test-oki.lsp
+(defun equalp (x y)
+  (equal x y))
+
 (with-open-input-file
   (fd "sample.log")
   (with-standard-input
@@ -209,17 +215,17 @@ go run example.go | gmnlisp test.lsp
 
 Result:
 
-```
-PASS: (test (FIELD 'STRUCT-NAME DATA) FOO)
-PASS: (test (FIELD 'NAME DATA) "hogehoge")
-PASS: (test (FIELD 'VALUE DATA) 0.100000)
-PASS: (test (FIELD 'ARRAY DATA) (1 2 3 4))
+```make test-gmnlisp|
+go run example.go | gmnlisp test.lsp
+PASS: (test (FIELD 'STRUCT DATA) FOO)
+PASS: (test (FIELD 'BAR DATA) "hogehoge")
+PASS: (test (FIELD 'BAZ DATA) 0.100000)
+PASS: (test (FIELD 'QUX DATA) #(1 2 3 4))
 PASS: (test (FIELD "ahaha" M) 1)
 PASS: (test (FIELD "ihihi" M) 2)
 PASS: (test (FIELD "ufufu" M) 3)
-PASS: (test (FIELD 'STRUCT-NAME DATA) ENCODER)
-PASS: (test (FIELD 'ARRAYHEADER DATA) "")
-PASS: (test (FIELD 'ARRAYINDEX DATA) NIL)
+PASS: (test (FIELD 'QUUUX DATA) "a\"\\\n\tb")
+PASS: (test (FIELD 'STRUCT DATA) ENCODER)
 PASS: (test (FIELD 'TYPENOTFOUND DATA) "")
 ```
 
