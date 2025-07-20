@@ -33,8 +33,8 @@ func main() {
 
 	enc := sxencode.NewEncoder(os.Stdout)
 	if *flagWarn {
-		enc.OnTypeNotFound = func(v reflect.Value) (string, error) {
-			return "'not-support-type", nil
+		enc.OnTypeNotSupported = func(v reflect.Value) (string, error) {
+			return "not-supported-type", nil
 		}
 	}
 

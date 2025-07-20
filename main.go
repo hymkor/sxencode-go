@@ -9,8 +9,8 @@ import (
 )
 
 type Encoder struct {
-	w              io.Writer
-	OnTypeNotFound func(reflect.Value) (string, error)
+	w                  io.Writer
+	OnTypeNotSupported func(reflect.Value) (string, error)
 }
 
 func (enc *Encoder) writeByte(b byte) error {
@@ -152,8 +152,8 @@ func (enc *Encoder) encode(value reflect.Value) error {
 			return enc.writeString("nil")
 		}
 	default:
-		if enc.OnTypeNotFound != nil {
-			s, err := enc.OnTypeNotFound(value)
+		if enc.OnTypeNotSupported != nil {
+			s, err := enc.OnTypeNotSupported(value)
 			if err != nil {
 				return err
 			}

@@ -28,7 +28,7 @@ func TestStruct(t *testing.T) {
 
 	var sbuf strings.Builder
 	enc := NewEncoder(&sbuf)
-	enc.OnTypeNotFound = func(v reflect.Value) (string, error) {
+	enc.OnTypeNotSupported = func(v reflect.Value) (string, error) {
 		return "not-support-type", nil
 	}
 	enc.Encode(v)
@@ -57,7 +57,7 @@ func TestMap(t *testing.T) {
 
 	var sbuf strings.Builder
 	enc := NewEncoder(&sbuf)
-	enc.OnTypeNotFound = func(v reflect.Value) (string, error) {
+	enc.OnTypeNotSupported = func(v reflect.Value) (string, error) {
 		return "not-support-type", nil
 	}
 	enc.Encode(v)
