@@ -5,6 +5,30 @@ sxencode - Golang Encoder to S-Expression
 It is useful for interfacing with Lisp systems, structured debugging, or human-readable serialization.  
 The output is readable by standard Lisp implementations including Common Lisp and ISLisp.
 
+```go doc -all|
+package sxencode // import "github.com/hymkor/sxencode-go"
+
+
+FUNCTIONS
+
+func Marshal(v any) ([]byte, error)
+
+TYPES
+
+type Encoder struct {
+    OnTypeNotSupported func(reflect.Value) (string, error)
+    // Has unexported fields.
+}
+
+func NewEncoder(w io.Writer) *Encoder
+
+func (enc *Encoder) Encode(v any) error
+
+type Sexpressioner interface {
+    Sexpression() string
+}
+
+```
 
 Example
 -------
@@ -15,11 +39,15 @@ The following is a minimal Go program that encodes a Go struct and the encoder i
 package main
 
 import (
+    "flag"
     "fmt"
     "os"
+    "reflect"
 
     "github.com/hymkor/sxencode-go"
 )
+
+var flagWarn = flag.Bool("w", false, "warning")
 
 func main() {
     type Foo struct {
@@ -28,6 +56,7 @@ func main() {
         Qux   []int
         Quux  map[string]int
         Quuux string
+        Corge func()
     }
 
     value := &Foo{
@@ -36,9 +65,15 @@ func main() {
         Qux:   []int{1, 2, 3, 4},
         Quux:  map[string]int{"ahaha": 1, "ihihi": 2, "ufufu": 3},
         Quuux: "a\"\\\n\tb",
+        Corge: func() {},
     }
 
     enc := sxencode.NewEncoder(os.Stdout)
+    if *flagWarn {
+        enc.OnTypeNotSupported = func(v reflect.Value) (string, error) {
+            return "not-supported-type", nil
+        }
+    }
 
     enc.Encode(value)
     fmt.Println()
@@ -57,7 +92,7 @@ The output of the above program is a pair of S-expressions representing the enco
 go run example.go
 ((struct Foo)(Bar "hogehoge")(Baz 0.1)(Qux #(1 2 3 4))(Quux (("ahaha" 1)("ihihi" 2)("ufufu" 3)))(Quuux "a\"\\
     b"))
-((struct Encoder)(TypeNotFound ""))
+((struct Encoder))
 ```
 
 ### Output Format
@@ -99,7 +134,6 @@ PASS: (test (FIELD "ufufu" M) 3)
 PASS: (test (FIELD 'QUUUX DATA) "a\"\\
     b")
 PASS: (test (FIELD 'STRUCT DATA) ENCODER)
-PASS: (test (FIELD 'TYPENOTFOUND DATA) "")
 * 
 ```
 
@@ -153,8 +187,7 @@ These are the supporting Lisp files used for the SBCL test:
     b"))
 
 (let ((data (read (standard-input) nil nil)))
-  (test (field 'struct data) 'Encoder)
-  (test (field 'typenotfound data) ""))
+  (test (field 'struct data) 'Encoder))
 ```
 
 
@@ -184,7 +217,6 @@ PASS: (test (FIELD "ufufu" M) 3)
 PASS: (test (FIELD (QUOTE QUUUX) DATA) "a\"\\
     b")
 PASS: (test (FIELD (QUOTE STRUCT) DATA) ENCODER)
-PASS: (test (FIELD (QUOTE TYPENOTFOUND) DATA) "")
 T
 ISLisp>
 ```
@@ -226,7 +258,6 @@ PASS: (test (FIELD "ihihi" M) 2)
 PASS: (test (FIELD "ufufu" M) 3)
 PASS: (test (FIELD 'QUUUX DATA) "a\"\\\n\tb")
 PASS: (test (FIELD 'STRUCT DATA) ENCODER)
-PASS: (test (FIELD 'TYPENOTFOUND DATA) "")
 ```
 
 ## Summary
