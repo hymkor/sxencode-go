@@ -1,7 +1,10 @@
 ### Jul 20, 2025
 
-- Use the vector literal `#(...)` for slices and arrays
-- Remove the fields: `ArrayHeader` and `ArrayIndex` from `Encoder`
+- Changed slice output to use the Lisp vector literal syntax `#(....)`.
+- Removed the `ArrayHeader` and `ArrayIndex` fields from `Encoder`.
+- Added support for calling the function set in `OnTypeNotSupported` when a type is not supported.
+- For maps and structs, keys or field names are now omitted when their corresponding S-expression values are absent.
+- For slices, if an element's S-expression is absent, `nil` is emitted instead.
 
 ### Jul 15, 2025
 
