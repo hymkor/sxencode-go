@@ -86,3 +86,59 @@ func TestStructWithTag(t *testing.T) {
 		t.Fatalf("expect %#v, but %#v", expect, result)
 	}
 }
+
+func TestStructOmit(t *testing.T) {
+	type fooWithTag struct {
+		Bar string `sxpr:"bar,omitempty"`
+	}
+	v := &fooWithTag{}
+	s, err := Marshal(v)
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+	expect := `((struct fooWithTag))`
+	result := string(s)
+	if expect != result {
+		t.Fatalf("expect %#v, but %#v", expect, result)
+	}
+
+	v = &fooWithTag{Bar: "x"}
+	s, err = Marshal(v)
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+	expect = `((struct fooWithTag)(bar "x"))`
+	result = string(s)
+	if expect != result {
+		t.Fatalf("expect %#v, but %#v", expect, result)
+	}
+}
+
+func TestStructOmitOnly(t *testing.T) {
+	type fooWithTag struct {
+		Bar string `sxpr:",omitempty"`
+		Baz string `sxpr:"baz"`
+	}
+	v := &fooWithTag{Baz: "1"}
+	s, err := Marshal(v)
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+	expect := `((struct fooWithTag)(baz "1"))`
+	result := string(s)
+	if expect != result {
+		t.Fatalf("expect %#v, but %#v", expect, result)
+	}
+
+	v = &fooWithTag{Bar: "x", Baz: "1"}
+	s, err = Marshal(v)
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+	expect1 := `((struct fooWithTag)(Bar "x")(baz "1"))`
+	expect2 := `((struct fooWithTag)(baz "1")(Bar "x"))`
+	result = string(s)
+	if expect1 != result && expect2 != result {
+		t.Fatalf("expect %#v or %#v, but %#v", expect1, expect2, result)
+	}
+}

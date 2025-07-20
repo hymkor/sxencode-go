@@ -70,23 +70,33 @@ func (enc *Encoder) encode(value reflect.Value) error {
 		}
 		fields := reflect.VisibleFields(types)
 		for i, t := range fields {
-			if t.IsExported() {
-				s, err := enc.tmpMarshal(value.Field(i))
-				if err != nil {
+			if !t.IsExported() {
+				continue
+			}
+			name := t.Name
+			fieldValue := value.Field(i)
+			if tag, ok := t.Tag.Lookup("sxpr"); ok {
+				f := strings.Split(tag, ",")
+				if f[0] != "" {
+					name = f[0]
+				}
+				omitempty := false
+				for _, tag1 := range f[1:] {
+					if tag1 == "omitempty" {
+						omitempty = true
+					}
+				}
+				if omitempty && fieldValue.IsZero() {
+					continue
+				}
+			}
+			s, err := enc.tmpMarshal(fieldValue)
+			if err != nil {
+				return err
+			}
+			if s != "" && name != "-" {
+				if _, err := fmt.Fprintf(enc.w, "(%s %s)", name, s); err != nil {
 					return err
-				}
-				name := t.Name
-				if tag, ok := t.Tag.Lookup("sxpr"); ok {
-					if i := strings.IndexByte(tag, ','); i >= 0 {
-						name = tag[:i]
-					} else {
-						name = tag
-					}
-				}
-				if s != "" {
-					if _, err := fmt.Fprintf(enc.w, "(%s %s)", name, s); err != nil {
-						return err
-					}
 				}
 			}
 		}
