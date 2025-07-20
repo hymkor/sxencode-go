@@ -75,8 +75,16 @@ func (enc *Encoder) encode(value reflect.Value) error {
 				if err != nil {
 					return err
 				}
+				name := t.Name
+				if tag, ok := t.Tag.Lookup("sxpr"); ok {
+					if i := strings.IndexByte(tag, ','); i >= 0 {
+						name = tag[:i]
+					} else {
+						name = tag
+					}
+				}
 				if s != "" {
-					if _, err := fmt.Fprintf(enc.w, "(%s %s)", t.Name, s); err != nil {
+					if _, err := fmt.Fprintf(enc.w, "(%s %s)", name, s); err != nil {
 						return err
 					}
 				}

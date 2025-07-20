@@ -15,12 +15,12 @@ var flagWarn = flag.Bool("w", false, "warning")
 
 func main() {
 	type Foo struct {
-		Bar   string
-		Baz   float64
-		Qux   []int
-		Quux  map[string]int
-		Quuux string
-		Corge func()
+		Bar   string         `sxpr:"bar"`
+		Baz   float64        `sxpr:"baz"`
+		Qux   []int          `sxpr:"qux"`
+		Quux  map[string]int `sxpr:"quux"`
+		Quuux string         `sxpr:"quuux"`
+		Corge func()         `sxpr:"corge"`
 	}
 
 	value := &Foo{

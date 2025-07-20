@@ -68,3 +68,21 @@ func TestMap(t *testing.T) {
 		t.Fatalf("expect %v or %v, but %v", expect1, expect2, result)
 	}
 }
+
+func TestStructWithTag(t *testing.T) {
+	type fooWithTag struct {
+		Bar string `sxpr:"bar-field"`
+	}
+	v := &fooWithTag{
+		Bar: "value",
+	}
+	s, err := Marshal(v)
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+	expect := `((struct fooWithTag)(bar-field "value"))`
+	result := string(s)
+	if expect != result {
+		t.Fatalf("expect %#v, but %#v", expect, result)
+	}
+}
