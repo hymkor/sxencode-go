@@ -36,6 +36,16 @@ var toLispString = strings.NewReplacer(
 	`\`, `\\`,
 )
 
+func (enc *Encoder) tmpMarshal(value reflect.Value) (string, error) {
+	var buffer strings.Builder
+	tmp := *enc
+	tmp.w = &buffer
+	if err := tmp.encode(value); err != nil {
+		return "", err
+	}
+	return buffer.String(), nil
+}
+
 func (enc *Encoder) encode(value reflect.Value) error {
 	k := value.Kind()
 	if value.CanInterface() {
@@ -60,14 +70,14 @@ func (enc *Encoder) encode(value reflect.Value) error {
 		fields := reflect.VisibleFields(types)
 		for i, t := range fields {
 			if t.IsExported() {
-				if _, err := fmt.Fprintf(enc.w, "(%s ", t.Name); err != nil {
+				s, err := enc.tmpMarshal(value.Field(i))
+				if err != nil {
 					return err
 				}
-				if err := enc.encode(value.Field(i)); err != nil {
-					return err
-				}
-				if err := enc.writeByte(')'); err != nil {
-					return err
+				if s != "" {
+					if _, err := fmt.Fprintf(enc.w, "(%s %s)", t.Name, s); err != nil {
+						return err
+					}
 				}
 			}
 		}
@@ -96,8 +106,14 @@ func (enc *Encoder) encode(value reflect.Value) error {
 		if n := value.Len(); n > 0 {
 			i := 0
 			for {
-				if err := enc.encode(value.Index(i)); err != nil {
+				s, err := enc.tmpMarshal(value.Index(i))
+				if err != nil {
 					return err
+				}
+				if s != "" {
+					enc.writeString(s)
+				} else {
+					enc.writeString("nil")
 				}
 				if i++; i >= n {
 					break
@@ -112,20 +128,19 @@ func (enc *Encoder) encode(value reflect.Value) error {
 		iter := value.MapRange()
 		enc.writeByte('(')
 		for iter.Next() {
-			if err := enc.writeByte('('); err != nil {
+			key, err := enc.tmpMarshal(iter.Key())
+			if err != nil {
 				return err
 			}
-			if err := enc.encode(iter.Key()); err != nil {
+			val, err := enc.tmpMarshal(iter.Value())
+			if err != nil {
 				return err
 			}
-			if err := enc.writeByte(' '); err != nil {
-				return err
-			}
-			if err := enc.encode(iter.Value()); err != nil {
-				return err
-			}
-			if err := enc.writeByte(')'); err != nil {
-				return err
+			if key != "" && val != "" {
+				_, err := fmt.Fprintf(enc.w, "(%s %s)", key, val)
+				if err != nil {
+					return err
+				}
 			}
 		}
 		return enc.writeByte(')')
@@ -142,8 +157,6 @@ func (enc *Encoder) encode(value reflect.Value) error {
 				return err
 			}
 			return enc.writeString(s)
-		} else {
-			return enc.writeString("nil")
 		}
 	}
 	return nil
