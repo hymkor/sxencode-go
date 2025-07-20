@@ -27,6 +27,9 @@ func main() {
 	}
 
 	enc := sxencode.NewEncoder(os.Stdout)
+	enc.OnTypeNotFound = func(v reflect.Value) (string, error) {
+		return "'not-support-type", nil
+	}
 
 	enc.Encode(value)
 	fmt.Println()

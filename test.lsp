@@ -32,5 +32,4 @@
 	b"))
 
 (let ((data (read (standard-input) nil nil)))
-  (test (field 'struct data) 'Encoder)
-  (test (field 'typenotfound data) ""))
+  (test (field 'struct data) 'Encoder))

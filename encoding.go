@@ -8,8 +8,8 @@ import (
 )
 
 type Encoder struct {
-	w            io.Writer
-	TypeNotFound string
+	w              io.Writer
+	OnTypeNotFound func(reflect.Value) (string, error)
 }
 
 func (enc *Encoder) writeByte(b byte) error {
@@ -17,12 +17,14 @@ func (enc *Encoder) writeByte(b byte) error {
 	return err
 }
 
-func (enc *Encoder) write(b []byte) (int, error) {
-	return enc.w.Write(b)
+func (enc *Encoder) write(b []byte) error {
+	_, err := enc.w.Write(b)
+	return err
 }
 
-func (enc *Encoder) writeString(s string) (int, error) {
-	return io.WriteString(enc.w, s)
+func (enc *Encoder) writeString(s string) error {
+	_, err := io.WriteString(enc.w, s)
+	return err
 }
 
 type Sexpressioner interface {
@@ -34,82 +36,121 @@ var toLispString = strings.NewReplacer(
 	`\`, `\\`,
 )
 
-func (enc *Encoder) encode(value reflect.Value) {
+func (enc *Encoder) encode(value reflect.Value) error {
 	k := value.Kind()
 	if value.CanInterface() {
 		if v, ok := value.Interface().(Sexpressioner); ok {
-			io.WriteString(enc.w, v.Sexpression())
-			return
+			_, err := io.WriteString(enc.w, v.Sexpression())
+			return err
 		}
 	}
 	switch k {
 	case reflect.Interface, reflect.Pointer:
-		enc.encode(value.Elem())
+		return enc.encode(value.Elem())
 	case reflect.Struct:
 		types := value.Type()
-		enc.writeByte('(')
+		if err := enc.writeByte('('); err != nil {
+			return err
+		}
 		if name := types.Name(); name != "" {
-			fmt.Fprintf(enc.w, "(struct %s)", name)
+			if _, err := fmt.Fprintf(enc.w, "(struct %s)", name); err != nil {
+				return err
+			}
 		}
 		fields := reflect.VisibleFields(types)
 		for i, t := range fields {
 			if t.IsExported() {
-				fmt.Fprintf(enc.w, "(%s ", t.Name)
-				enc.encode(value.Field(i))
-				enc.writeByte(')')
+				if _, err := fmt.Fprintf(enc.w, "(%s ", t.Name); err != nil {
+					return err
+				}
+				if err := enc.encode(value.Field(i)); err != nil {
+					return err
+				}
+				if err := enc.writeByte(')'); err != nil {
+					return err
+				}
 			}
 		}
-		enc.writeByte(')')
+		return enc.writeByte(')')
 	case reflect.String:
-		enc.writeByte('"')
-		io.WriteString(enc.w, toLispString.Replace(value.String()))
-		enc.writeByte('"')
+		if err := enc.writeByte('"'); err != nil {
+			return err
+		}
+		if _, err := io.WriteString(enc.w, toLispString.Replace(value.String())); err != nil {
+			return err
+		}
+		return enc.writeByte('"')
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		fmt.Fprint(enc.w, value.Int())
+		_, err := fmt.Fprint(enc.w, value.Int())
+		return err
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
-		fmt.Fprint(enc.w, value.Uint())
+		_, err := fmt.Fprint(enc.w, value.Uint())
+		return err
 	case reflect.Float32, reflect.Float64:
-		fmt.Fprint(enc.w, value.Float())
+		_, err := fmt.Fprint(enc.w, value.Float())
+		return err
 	case reflect.Array, reflect.Slice:
-		enc.writeString("#(")
+		if err := enc.writeString("#("); err != nil {
+			return err
+		}
 		if n := value.Len(); n > 0 {
 			i := 0
 			for {
-				enc.encode(value.Index(i))
+				if err := enc.encode(value.Index(i)); err != nil {
+					return err
+				}
 				if i++; i >= n {
 					break
 				}
-				enc.writeByte(' ')
+				if err := enc.writeByte(' '); err != nil {
+					return err
+				}
 			}
 		}
-
-		enc.writeByte(')')
+		return enc.writeByte(')')
 	case reflect.Map:
 		iter := value.MapRange()
 		enc.writeByte('(')
 		for iter.Next() {
-			enc.writeByte('(')
-			enc.encode(iter.Key())
-			enc.writeByte(' ')
-			enc.encode(iter.Value())
-			enc.writeByte(')')
+			if err := enc.writeByte('('); err != nil {
+				return err
+			}
+			if err := enc.encode(iter.Key()); err != nil {
+				return err
+			}
+			if err := enc.writeByte(' '); err != nil {
+				return err
+			}
+			if err := enc.encode(iter.Value()); err != nil {
+				return err
+			}
+			if err := enc.writeByte(')'); err != nil {
+				return err
+			}
 		}
-		enc.writeByte(')')
+		return enc.writeByte(')')
 	case reflect.Bool:
 		if value.Bool() {
-			enc.writeByte('t')
+			return enc.writeByte('t')
 		} else {
-			enc.writeString("nil")
+			return enc.writeString("nil")
 		}
 	default:
-		if enc.TypeNotFound != "" {
-			fmt.Fprintf(enc.w, "(%s %#v)", enc.TypeNotFound, value.String())
+		if enc.OnTypeNotFound != nil {
+			s, err := enc.OnTypeNotFound(value)
+			if err != nil {
+				return err
+			}
+			return enc.writeString(s)
+		} else {
+			return enc.writeString("nil")
 		}
 	}
+	return nil
 }
 
-func (enc *Encoder) Encode(v any) {
-	enc.encode(reflect.ValueOf(v))
+func (enc *Encoder) Encode(v any) error {
+	return enc.encode(reflect.ValueOf(v))
 }
 
 func NewEncoder(w io.Writer) *Encoder {
