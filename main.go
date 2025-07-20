@@ -1,6 +1,7 @@
 package sxencode
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 	"reflect"
@@ -168,4 +169,11 @@ func (enc *Encoder) Encode(v any) error {
 
 func NewEncoder(w io.Writer) *Encoder {
 	return &Encoder{w: w}
+}
+
+func Marshal(v any) ([]byte, error) {
+	var data bytes.Buffer
+	enc := NewEncoder(&data)
+	enc.Encode(v)
+	return data.Bytes(), nil
 }
