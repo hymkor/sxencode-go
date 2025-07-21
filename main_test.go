@@ -142,3 +142,23 @@ func TestStructOmitOnly(t *testing.T) {
 		t.Fatalf("expect %#v or %#v, but %#v", expect1, expect2, result)
 	}
 }
+
+func TestHyphen(t *testing.T) {
+	type foo struct {
+		Bar string `sxpr:"bar"`
+		Baz string `sxpr:"-"`
+	}
+	v := &foo{
+		Bar: "1",
+		Baz: "2",
+	}
+	s, err := Marshal(v)
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+	expect := `((struct foo)(bar "1"))`
+	result := string(s)
+	if expect != result {
+		t.Fatalf("expect %#v, but %#v", expect, result)
+	}
+}
