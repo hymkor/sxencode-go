@@ -24,6 +24,8 @@ func NewEncoder(w io.Writer) *Encoder
 
 func (enc *Encoder) Encode(v any) error
 
+type Name struct{}
+
 type Sexpressioner interface {
     Sexpression() string
 }
@@ -51,12 +53,12 @@ var flagWarn = flag.Bool("w", false, "warning")
 
 func main() {
     type Foo struct {
-        Bar   string
-        Baz   float64
-        Qux   []int
-        Quux  map[string]int
-        Quuux string
-        Corge func()
+        Bar   string         `sxpr:"bar"`
+        Baz   float64        `sxpr:"baz"`
+        Qux   []int          `sxpr:"qux"`
+        Quux  map[string]int `sxpr:"quux"`
+        Quuux string         `sxpr:"quuux"`
+        Corge func()         `sxpr:"corge"`
     }
 
     value := &Foo{
@@ -90,7 +92,7 @@ The output of the above program is a pair of S-expressions representing the enco
 
 ```make example|
 go run example.go
-((struct Foo)(Bar "hogehoge")(Baz 0.1)(Qux #(1 2 3 4))(Quux (("ahaha" 1)("ihihi" 2)("ufufu" 3)))(Quuux "a\"\\
+((struct Foo)(bar "hogehoge")(baz 0.1)(qux #(1 2 3 4))(quux (("ahaha" 1)("ihihi" 2)("ufufu" 3)))(quuux "a\"\\
     b"))
 ((struct Encoder))
 ```
