@@ -1,3 +1,9 @@
+### Jul 21, 2025
+
+- Added support for struct tags `sxpr:"NAME,omitempty"` and `sxpr:",omitempty"` to omit fields with zero values from the S-expression output.
+- Added support for `sxpr:"-"` struct tags to exclude fields from S-expression output entirely.
+- Added support for a field of type ``sxencode.Name `sxpr:"SYMBOL"` `` in a struct to specify the symbol used in the struct header `(struct SYMBOL)`, similar to how "encoding/xml" works.
+
 ### Jul 20, 2025
 
 - Changed slice output to use the Lisp vector literal syntax `#(....)`.
@@ -5,6 +11,7 @@
 - Added support for calling the function set in `OnTypeNotSupported` when a type is not supported.
 - For maps and structs, keys or field names are now omitted when their corresponding S-expression values are absent.
 - For slices, if an element's S-expression is absent, `nil` is emitted instead.
+- Added support for the struct tag `sxpr:"NAME"` to override the field name in S-expression output
 
 ### Jul 15, 2025
 
