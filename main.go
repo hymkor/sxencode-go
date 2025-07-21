@@ -71,6 +71,31 @@ func findStructNameField(fields []reflect.StructField) string {
 	return ""
 }
 
+func sxprTags(t *reflect.StructField) []string {
+	tag, ok := t.Tag.Lookup("sxpr")
+	if !ok {
+		return nil
+	}
+	return strings.Split(tag, ",")
+}
+
+func nameAndOmit(t *reflect.StructField) (name string, omitempty bool) {
+	name = t.Name
+	tags := sxprTags(t)
+	if len(tags) <= 0 {
+		return
+	}
+	if tags[0] != "" {
+		name = tags[0]
+	}
+	for _, tag1 := range tags[1:] {
+		if tag1 == "omitempty" {
+			omitempty = true
+		}
+	}
+	return
+}
+
 func (enc *Encoder) encode(value reflect.Value) error {
 	k := value.Kind()
 	if value.CanInterface() {
@@ -83,10 +108,10 @@ func (enc *Encoder) encode(value reflect.Value) error {
 	case reflect.Interface, reflect.Pointer:
 		return enc.encode(value.Elem())
 	case reflect.Struct:
-		types := value.Type()
 		if err := enc.writeByte('('); err != nil {
 			return err
 		}
+		types := value.Type()
 		fields := reflect.VisibleFields(types)
 		structName := findStructNameField(fields)
 		if structName == "" {
@@ -101,23 +126,14 @@ func (enc *Encoder) encode(value reflect.Value) error {
 			if !t.IsExported() || isNameField(&t) {
 				continue
 			}
-			name := t.Name
 			fieldValue := value.Field(i)
-			if tag, ok := t.Tag.Lookup("sxpr"); ok {
-				f := strings.Split(tag, ",")
-				if f[0] != "" {
-					name = f[0]
-				}
-				omitempty := false
-				for _, tag1 := range f[1:] {
-					if tag1 == "omitempty" {
-						omitempty = true
-					}
-				}
-				if omitempty && fieldValue.IsZero() {
-					continue
-				}
+
+			name, omitempty := nameAndOmit(&t)
+
+			if omitempty && fieldValue.IsZero() {
+				continue
 			}
+
 			s, err := enc.tmpMarshal(fieldValue)
 			if err != nil {
 				return err
