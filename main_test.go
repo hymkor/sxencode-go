@@ -71,7 +71,8 @@ func TestMap(t *testing.T) {
 
 func TestStructWithTag(t *testing.T) {
 	type fooWithTag struct {
-		Bar string `sxpr:"bar-field"`
+		Name Name   `sxpr:"foo"`
+		Bar  string `sxpr:"bar-field"`
 	}
 	v := &fooWithTag{
 		Bar: "value",
@@ -80,7 +81,7 @@ func TestStructWithTag(t *testing.T) {
 	if err != nil {
 		t.Fatal(err.Error())
 	}
-	expect := `((struct fooWithTag)(bar-field "value"))`
+	expect := `((struct foo)(bar-field "value"))`
 	result := string(s)
 	if expect != result {
 		t.Fatalf("expect %#v, but %#v", expect, result)

@@ -32,6 +32,8 @@ type Sexpressioner interface {
 	Sexpression() string
 }
 
+type Name struct{}
+
 var toLispString = strings.NewReplacer(
 	`"`, `\"`,
 	`\`, `\\`,
@@ -45,6 +47,28 @@ func (enc *Encoder) tmpMarshal(value reflect.Value) (string, error) {
 		return "", err
 	}
 	return buffer.String(), nil
+}
+
+func isNameField(t *reflect.StructField) bool {
+	typ := t.Type
+	return typ.Name() == "Name" && typ.PkgPath() == "github.com/hymkor/sxencode-go"
+}
+
+func findStructNameField(fields []reflect.StructField) string {
+	for _, t := range fields {
+		if !t.IsExported() {
+			continue
+		}
+		if isNameField(&t) {
+			if tag, ok := t.Tag.Lookup("sxpr"); ok {
+				name, _, _ := strings.Cut(tag, ",")
+				if name != "" {
+					return name
+				}
+			}
+		}
+	}
+	return ""
 }
 
 func (enc *Encoder) encode(value reflect.Value) error {
@@ -63,14 +87,18 @@ func (enc *Encoder) encode(value reflect.Value) error {
 		if err := enc.writeByte('('); err != nil {
 			return err
 		}
-		if name := types.Name(); name != "" {
-			if _, err := fmt.Fprintf(enc.w, "(struct %s)", name); err != nil {
+		fields := reflect.VisibleFields(types)
+		structName := findStructNameField(fields)
+		if structName == "" {
+			structName = types.Name()
+		}
+		if structName != "" {
+			if _, err := fmt.Fprintf(enc.w, "(struct %s)", structName); err != nil {
 				return err
 			}
 		}
-		fields := reflect.VisibleFields(types)
 		for i, t := range fields {
-			if !t.IsExported() {
+			if !t.IsExported() || isNameField(&t) {
 				continue
 			}
 			name := t.Name
