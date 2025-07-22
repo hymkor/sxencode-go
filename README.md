@@ -12,8 +12,18 @@ package sxencode // import "github.com/hymkor/sxencode-go"
 FUNCTIONS
 
 func Marshal(v any) ([]byte, error)
+func Unmarshal(data []byte, v any) error
 
 TYPES
+
+type Decoder struct {
+    OnTypeNotSupported func(any, reflect.Value) error
+    // Has unexported fields.
+}
+
+func NewDecoder(r io.RuneScanner) *Decoder
+
+func (D *Decoder) Decode(v any) error
 
 type Encoder struct {
     OnTypeNotSupported func(reflect.Value) (string, error)
@@ -30,6 +40,10 @@ type Sexpressioner interface {
     Sexpression() string
 }
 
+type Symbol struct {
+    Value string
+}
+
 ```
 
 Example
@@ -41,6 +55,7 @@ The following is a minimal Go program that encodes a Go struct and the encoder i
 package main
 
 import (
+    "errors"
     "flag"
     "fmt"
     "os"
@@ -51,7 +66,7 @@ import (
 
 var flagWarn = flag.Bool("w", false, "warning")
 
-func main() {
+func mains() error {
     type Foo struct {
         Bar   string         `sxpr:"bar"`
         Baz   float64        `sxpr:"baz"`
@@ -67,21 +82,33 @@ func main() {
         Qux:   []int{1, 2, 3, 4},
         Quux:  map[string]int{"ahaha": 1, "ihihi": 2, "ufufu": 3},
         Quuux: "a\"\\\n\tb",
-        Corge: func() {},
+        Corge: nil,
     }
 
-    enc := sxencode.NewEncoder(os.Stdout)
-    if *flagWarn {
-        enc.OnTypeNotSupported = func(v reflect.Value) (string, error) {
-            return "not-supported-type", nil
-        }
+    sxpr, err := sxencode.Marshal(value)
+    if err != nil {
+        return err
     }
 
-    enc.Encode(value)
-    fmt.Println()
+    fmt.Println(string(sxpr))
 
-    enc.Encode(enc)
-    fmt.Println()
+    var clone Foo
+    err = sxencode.Unmarshal(sxpr, &clone)
+    if err != nil {
+        return err
+    }
+
+    if !reflect.DeepEqual(value, &clone) {
+        return errors.New("encode or decode failed")
+    }
+    return nil
+}
+
+func main() {
+    if err := mains(); err != nil {
+        fmt.Fprintln(os.Stderr, err.Error())
+        os.Exit(1)
+    }
 }
 ```
 
@@ -94,7 +121,6 @@ The output of the above program is a pair of S-expressions representing the enco
 go run example.go
 ((struct Foo)(bar "hogehoge")(baz 0.1)(qux #(1 2 3 4))(quux (("ahaha" 1)("ihihi" 2)("ufufu" 3)))(quuux "a\"\\
     b"))
-((struct Encoder))
 ```
 
 ### Output Format
@@ -135,7 +161,6 @@ PASS: (test (FIELD "ihihi" M) 2)
 PASS: (test (FIELD "ufufu" M) 3)
 PASS: (test (FIELD 'QUUUX DATA) "a\"\\
     b")
-PASS: (test (FIELD 'STRUCT DATA) ENCODER)
 * 
 ```
 
@@ -187,9 +212,6 @@ These are the supporting Lisp files used for the SBCL test:
     (test (field "ufufu" m) 3))
   (test (field 'quuux data) "a\"\\
     b"))
-
-(let ((data (read (standard-input) nil nil)))
-  (test (field 'struct data) 'Encoder))
 ```
 
 
@@ -218,7 +240,6 @@ PASS: (test (FIELD "ihihi" M) 2)
 PASS: (test (FIELD "ufufu" M) 3)
 PASS: (test (FIELD (QUOTE QUUUX) DATA) "a\"\\
     b")
-PASS: (test (FIELD (QUOTE STRUCT) DATA) ENCODER)
 T
 ISLisp>
 ```
@@ -259,7 +280,6 @@ PASS: (test (FIELD "ahaha" M) 1)
 PASS: (test (FIELD "ihihi" M) 2)
 PASS: (test (FIELD "ufufu" M) 3)
 PASS: (test (FIELD 'QUUUX DATA) "a\"\\\n\tb")
-PASS: (test (FIELD 'STRUCT DATA) ENCODER)
 ```
 
 ## Summary
