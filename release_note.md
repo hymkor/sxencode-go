@@ -1,4 +1,8 @@
-- Implement Decoder
+v0.1.0
+-------
+Jul 23, 2025
+
+- Implement `Decoder` and `Unmarshal`
 
 v0.0.3
 ------
