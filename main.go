@@ -8,6 +8,13 @@ import (
 	"strings"
 )
 
+var (
+	// Delimiters for vector (array/slice) literals in S-expression encoding.
+	// Change these for compatibility with non-Common Lisp dialects.
+	VectorOpen  = "#("
+	VectorClose = ")"
+)
+
 type Encoder struct {
 	w                  io.Writer
 	OnTypeNotSupported func(reflect.Value) (string, error)
@@ -163,7 +170,7 @@ func (enc *Encoder) encode(value reflect.Value) error {
 		_, err := fmt.Fprint(enc.w, value.Float())
 		return err
 	case reflect.Array, reflect.Slice:
-		if err := enc.writeString("#("); err != nil {
+		if err := enc.writeString(VectorOpen); err != nil {
 			return err
 		}
 		if n := value.Len(); n > 0 {
@@ -186,7 +193,7 @@ func (enc *Encoder) encode(value reflect.Value) error {
 				}
 			}
 		}
-		return enc.writeByte(')')
+		return enc.writeString(VectorClose)
 	case reflect.Map:
 		iter := value.MapRange()
 		enc.writeByte('(')
