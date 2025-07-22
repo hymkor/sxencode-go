@@ -30,6 +30,3 @@
     (test (field "ufufu" m) 3))
   (test (field 'quuux data) "a\"\\
 	b"))
-
-(let ((data (read (standard-input) nil nil)))
-  (test (field 'struct data) 'Encoder))

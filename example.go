@@ -3,6 +3,7 @@
 package main
 
 import (
+	"errors"
 	"flag"
 	"fmt"
 	"os"
@@ -13,7 +14,7 @@ import (
 
 var flagWarn = flag.Bool("w", false, "warning")
 
-func main() {
+func mains() error {
 	type Foo struct {
 		Bar   string         `sxpr:"bar"`
 		Baz   float64        `sxpr:"baz"`
@@ -29,19 +30,31 @@ func main() {
 		Qux:   []int{1, 2, 3, 4},
 		Quux:  map[string]int{"ahaha": 1, "ihihi": 2, "ufufu": 3},
 		Quuux: "a\"\\\n\tb",
-		Corge: func() {},
+		Corge: nil,
 	}
 
-	enc := sxencode.NewEncoder(os.Stdout)
-	if *flagWarn {
-		enc.OnTypeNotSupported = func(v reflect.Value) (string, error) {
-			return "not-supported-type", nil
-		}
+	sxpr, err := sxencode.Marshal(value)
+	if err != nil {
+		return err
 	}
 
-	enc.Encode(value)
-	fmt.Println()
+	fmt.Println(string(sxpr))
 
-	enc.Encode(enc)
-	fmt.Println()
+	var clone Foo
+	err = sxencode.Unmarshal(sxpr, &clone)
+	if err != nil {
+		return err
+	}
+
+	if !reflect.DeepEqual(value, &clone) {
+		return errors.New("encode or decode failed")
+	}
+	return nil
+}
+
+func main() {
+	if err := mains(); err != nil {
+		fmt.Fprintln(os.Stderr, err.Error())
+		os.Exit(1)
+	}
 }
