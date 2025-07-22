@@ -10,8 +10,7 @@ import (
 
 var (
 	// Delimiters for vector (array/slice) literals in S-expression encoding.
-	// Change these for compatibility with non-Common Lisp dialects.
-	VectorOpen  = "#("
+	VectorOpen  = "("
 	VectorClose = ")"
 )
 

@@ -33,6 +33,8 @@ func mains() error {
 		Corge: nil,
 	}
 
+	sxencode.VectorOpen = "#(" // for CommonLisp and ISLisp
+
 	sxpr, err := sxencode.Marshal(value)
 	if err != nil {
 		return err
