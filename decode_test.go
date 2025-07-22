@@ -112,3 +112,48 @@ func TestDecodeSlice(t *testing.T) {
 	}
 
 }
+
+func TestBoth(t *testing.T) {
+	type Baz struct {
+		Qux  []int           `sxpr:"qux"`
+		Quux map[string]*Baz `sxpr:"quux"`
+	}
+
+	type Foo struct {
+		Bar string `sxpr:"bar"`
+		Baz Baz    `sxpr:"baz"`
+	}
+
+	v := &Foo{
+		Bar: "bar1",
+		Baz: Baz{
+			Qux: []int{4, 3, 2, 1},
+			Quux: map[string]*Baz{
+				"hoge": &Baz{
+					Qux: []int{3, 4, 5, 6},
+				},
+			},
+		},
+	}
+	bin, err := Marshal(&v)
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+	// println(string(bin))
+
+	var v2 Foo
+
+	err = Unmarshal(bin, &v2)
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+	if v2.Bar != "bar1" {
+		t.Fatal("! v2.Bar")
+	}
+	if v2.Baz.Qux[2] != 2 {
+		t.Fatal("! v2.Baz.Qux")
+	}
+	if v2.Baz.Quux["hoge"].Qux[3] != 6 {
+		t.Fatal("! v2.Baz.Quux[hoge].Qux[3]")
+	}
+}
