@@ -10,13 +10,13 @@ type Symbol struct {
 	Value string
 }
 
-type Cons struct {
+type consT struct {
 	Car any
 	Cdr any
 }
 
 var parser1 = &parser.Parser[any]{
-	Cons:   func(car, cdr any) any { return &Cons{Car: car, Cdr: cdr} },
+	Cons:   func(car, cdr any) any { return &consT{Car: car, Cdr: cdr} },
 	Int:    func(n int64) any { return n },
 	BigInt: func(n *big.Int) any { return n },
 	Float:  func(f float64) any { return f },

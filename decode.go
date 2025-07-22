@@ -29,20 +29,20 @@ func (D *Decoder) Decode(v any) error {
 	return D.decode(sxpr, reflect.ValueOf(v))
 }
 
-func keyValuePair(value any) *Cons {
-	cons, ok := value.(*Cons)
+func keyValuePair(value any) *consT {
+	cons, ok := value.(*consT)
 	if !ok {
 		return nil
 	}
-	if cdr, ok := cons.Cdr.(*Cons); ok {
-		return &Cons{Car: cons.Car, Cdr: cdr.Car}
+	if cdr, ok := cons.Cdr.(*consT); ok {
+		return &consT{Car: cons.Car, Cdr: cdr.Car}
 	}
 	return cons
 }
 
-func sxpr2list(sxpr any) (list []*Cons) {
+func sxpr2list(sxpr any) (list []*consT) {
 	for sxpr != nil {
-		cons, ok := sxpr.(*Cons)
+		cons, ok := sxpr.(*consT)
 		if !ok {
 			return
 		}
@@ -104,7 +104,7 @@ func (D *Decoder) decode(sxpr any, value reflect.Value) error {
 		source, ok := sxpr.([]any)
 		if !ok {
 			for sxpr != nil {
-				cons, ok := sxpr.(*Cons)
+				cons, ok := sxpr.(*consT)
 				if !ok {
 					source = append(source, sxpr)
 					break
