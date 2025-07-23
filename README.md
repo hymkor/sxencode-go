@@ -147,14 +147,7 @@ The following shows how the output can be parsed and validated using [SBCL (Stee
 [SBCL]: https://www.sbcl.org/ 
 
 ```make test-sbcl |
-go run example.go | sbcl --load "test-sbcl.lsp"
-This is SBCL 2.5.6, an implementation of ANSI Common Lisp.
-More information about SBCL is available at <http://www.sbcl.org/>.
-
-SBCL is free software, provided as is, with absolutely no warranty.
-It is mostly in the public domain; some portions are provided under
-BSD-style licenses.  See the CREDITS and COPYING files in the
-distribution for more information.
+go run example.go | sbcl --script "test-sbcl.lsp"
 PASS: (test (FIELD 'BAR DATA) "hogehoge")
 PASS: (test (FIELD 'BAZ DATA) 0.1)
 PASS: (test (FIELD 'QUX DATA) (1 2 3 4))
@@ -163,7 +156,6 @@ PASS: (test (FIELD "ihihi" M) 2)
 PASS: (test (FIELD "ufufu" M) 3)
 PASS: (test (FIELD 'QUUUX DATA) "a\"\\
     b")
-* 
 ```
 
 ### Lisp files
