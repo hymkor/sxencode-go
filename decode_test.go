@@ -157,3 +157,26 @@ func TestBoth(t *testing.T) {
 		t.Fatal("! v2.Baz.Quux[hoge].Qux[3]")
 	}
 }
+
+func TestDecodeNoname(t *testing.T) {
+	type foo struct {
+		Bar string `sxpr:"bar,noname"`
+		Baz string `sxpr:"baz,noname"`
+		Qux string `sxpr:"qux"`
+	}
+	var foo1 foo
+
+	err := Unmarshal([]byte(`((struct foo) "first" "second" (qux "third"))`), &foo1)
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+	if expect := "third"; foo1.Qux != expect {
+		t.Fatalf("expect %#v, but %#v", expect, foo1.Qux)
+	}
+	if expect := "first"; foo1.Bar != expect {
+		t.Fatalf("expect %#v, but %#v", expect, foo1.Bar)
+	}
+	if expect := "second"; foo1.Baz != expect {
+		t.Fatalf("expect %#v, but %#v", expect, foo1.Baz)
+	}
+}

@@ -88,6 +88,7 @@ func sxprTags(t *reflect.StructField) []string {
 type tagInfoT struct {
 	name      string
 	omitEmpty bool
+	noName    bool
 	tags      []string
 }
 
@@ -105,6 +106,8 @@ func tagInfo(t *reflect.StructField) (r *tagInfoT) {
 	for _, tag1 := range tags[1:] {
 		if tag1 == "omitempty" {
 			r.omitEmpty = true
+		} else if tag1 == "noname" {
+			r.noName = true
 		} else {
 			r.tags = append(r.tags, tag1)
 		}
@@ -154,11 +157,15 @@ func (enc *Encoder) encode(value reflect.Value) error {
 			if err != nil {
 				return err
 			}
-			if s != "" && tag.name != "-" {
-				if _, err := fmt.Fprintf(enc.w, "(%s %s)", tag.name, s); err != nil {
-					return err
-				}
+			if tag.noName {
+				_, err = fmt.Fprintf(enc.w, " %s", s)
+			} else if s != "" && tag.name != "-" {
+				_, err = fmt.Fprintf(enc.w, "(%s %s)", tag.name, s)
 			}
+			if err != nil {
+				return err
+			}
+
 		}
 		return enc.writeByte(')')
 	case reflect.String:

@@ -163,3 +163,23 @@ func TestHyphen(t *testing.T) {
 		t.Fatalf("expect %#v, but %#v", expect, result)
 	}
 }
+
+func TestNoName(t *testing.T) {
+	type foo struct {
+		Bar string `sxpr:",noname"`
+		Baz int    `sxpr:"baz"`
+	}
+	v := &foo{
+		Bar: "one",
+		Baz: 7,
+	}
+	s, err := Marshal(v)
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+	expect := `((struct foo) "one"(baz 7))`
+	result := string(s)
+	if expect != result {
+		t.Fatalf("expect %#v, but %#v", expect, result)
+	}
+}

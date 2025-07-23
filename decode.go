@@ -40,14 +40,16 @@ func keyValuePair(value any) *consT {
 	return cons
 }
 
-func sxpr2list(sxpr any) (list []*consT) {
+func sxpr2list(sxpr any) (pairs []*consT, nopairs []any) {
 	for sxpr != nil {
 		cons, ok := sxpr.(*consT)
 		if !ok {
 			return
 		}
 		if v := keyValuePair(cons.Car); v != nil {
-			list = append(list, v)
+			pairs = append(pairs, v)
+		} else {
+			nopairs = append(nopairs, cons.Car)
 		}
 		sxpr = cons.Cdr
 	}
@@ -64,23 +66,34 @@ func (D *Decoder) decode(sxpr any, value reflect.Value) error {
 	case reflect.Interface:
 		return D.decode(sxpr, value.Elem())
 	case reflect.Struct:
-		sxprs := sxpr2list(sxpr)
-		if len(sxprs) <= 0 {
+		pairs, nopairs := sxpr2list(sxpr)
+		if len(pairs) <= 0 {
 			return nil
 		}
-		if symbol, ok := sxprs[0].Car.(Symbol); !ok || symbol.Value != "struct" {
+		if symbol, ok := pairs[0].Car.(Symbol); !ok || symbol.Value != "struct" {
 			return nil
 		}
 		types := value.Type()
 		fields := reflect.VisibleFields(types)
-		for _, sxpr1 := range sxprs[1:] {
+		for _, sxpr1 := range pairs[1:] {
 			if sxkey, ok := sxpr1.Car.(Symbol); ok {
 				for i, field1 := range fields {
 					tag := tagInfo(&field1)
-					if strings.EqualFold(sxkey.Value, tag.name) {
+					if !tag.noName && strings.EqualFold(sxkey.Value, tag.name) {
 						D.decode(sxpr1.Cdr, value.Field(i))
 						break
 					}
+				}
+			}
+		}
+		used := 0
+		for _, sxpr1 := range nopairs {
+			for i := used; i < len(fields); i++ {
+				tag := tagInfo(&fields[i])
+				if tag.noName {
+					D.decode(sxpr1, value.Field(i))
+					used = i + 1
+					break
 				}
 			}
 		}
@@ -127,7 +140,7 @@ func (D *Decoder) decode(sxpr any, value reflect.Value) error {
 		}
 		value.Set(slice)
 	case reflect.Map:
-		sxprs := sxpr2list(sxpr)
+		sxprs, _ := sxpr2list(sxpr)
 		if len(sxprs) <= 0 {
 			return nil
 		}
