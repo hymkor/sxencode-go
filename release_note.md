@@ -1,3 +1,5 @@
+- Symbol can now be decoded into a string variable.
+
 v0.2.0
 ------
 Jul 23, 2025
