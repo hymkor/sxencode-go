@@ -27,7 +27,7 @@ func TestDecodeStruct(t *testing.T) {
 	}
 	var foo Foo
 
-	err := Unmarshal([]byte(`((struct Foo)(bar "10")(Baz 4)(qux ((struct Qux)(quux "quuux"))))`), &foo)
+	err := Unmarshal([]byte(`((bar "10")(Baz 4)(qux ((quux "quuux"))))`), &foo)
 	if err != nil {
 		t.Fatal(err.Error())
 	}
@@ -66,7 +66,7 @@ func TestDecodeStructMap(t *testing.T) {
 		Map map[string]int `sxpr:"map"`
 	}
 	foo := &Foo{}
-	err := Unmarshal([]byte(`((struct Foo) (map (("a" 1)("b" 2)("c" 3))))`), &foo)
+	err := Unmarshal([]byte(`((map (("a" 1)("b" 2)("c" 3))))`), &foo)
 	if err != nil {
 		t.Fatal(err.Error())
 	}
@@ -166,7 +166,7 @@ func TestDecodeNoname(t *testing.T) {
 	}
 	var foo1 foo
 
-	err := Unmarshal([]byte(`((struct foo) "first" "second" (qux "third"))`), &foo1)
+	err := Unmarshal([]byte(`("first" "second" (qux "third"))`), &foo1)
 	if err != nil {
 		t.Fatal(err.Error())
 	}

@@ -67,15 +67,12 @@ func (D *Decoder) decode(sxpr any, value reflect.Value) error {
 		return D.decode(sxpr, value.Elem())
 	case reflect.Struct:
 		pairs, nopairs := sxpr2list(sxpr)
-		if len(pairs) <= 0 {
-			return nil
-		}
-		if symbol, ok := pairs[0].Car.(Symbol); !ok || symbol.Value != "struct" {
+		if len(pairs) <= 0 && len(nopairs) <= 0 {
 			return nil
 		}
 		types := value.Type()
 		fields := reflect.VisibleFields(types)
-		for _, sxpr1 := range pairs[1:] {
+		for _, sxpr1 := range pairs {
 			if sxkey, ok := sxpr1.Car.(Symbol); ok {
 				for i, field1 := range fields {
 					tag := tagInfo(&field1)
