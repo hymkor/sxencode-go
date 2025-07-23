@@ -22,7 +22,7 @@
 (let ((data (read (standard-input) nil nil)))
   (test (field 'bar data) "hogehoge")
   (test (field 'baz data) 0.1)
-  (test (field 'qux data) #(1 2 3 4))
+  (test (field 'qux data) '(1 2 3 4))
   (let ((m (field 'quux data)))
     (test (field "ahaha" m) 1)
     (test (field "ihihi" m) 2)
