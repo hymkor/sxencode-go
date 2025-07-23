@@ -9,6 +9,14 @@ The output is readable by standard Lisp implementations including Common Lisp an
 package sxencode // import "github.com/hymkor/sxencode-go"
 
 
+VARIABLES
+
+var (
+    // Delimiters for vector (array/slice) literals in S-expression encoding.
+    VectorOpen  = "("
+    VectorClose = ")"
+)
+
 FUNCTIONS
 
 func Marshal(v any) ([]byte, error)
@@ -34,14 +42,8 @@ func NewEncoder(w io.Writer) *Encoder
 
 func (enc *Encoder) Encode(v any) error
 
-type Name struct{}
-
 type Sexpressioner interface {
     Sexpression() string
-}
-
-type Symbol struct {
-    Value string
 }
 
 ```
@@ -119,15 +121,16 @@ The output of the above program is a pair of S-expressions representing the enco
 
 ```make example|
 go run example.go
-((struct Foo)(bar "hogehoge")(baz 0.1)(qux #(1 2 3 4))(quux (("ahaha" 1)("ihihi" 2)("ufufu" 3)))(quuux "a\"\\
+((bar "hogehoge")(baz 0.1)(qux (1 2 3 4))(quux (("ahaha" 1)("ihihi" 2)("ufufu" 3)))(quuux "a\"\\
     b"))
 ```
 
 ### Output Format
 
-* A struct is encoded as a list beginning with `(struct <TypeName>)`, followed by pairs of field name and value:
-  Example: `((struct Foo)(Bar "hogehoge") ...)`.
-  The field names and type name are emitted as symbols, making them easy to extract with `(assoc)` in Lisp.
+* A struct is encoded as a list of field name and value pairs:
+  Example: `((Bar "hogehoge") (Baz 42) ...)`.
+  The field names are emitted as symbols, making them easy to extract with `(assoc)` in Lisp.
+  The type name is no longer included in the output.
 
 * A map is encoded as a list of `(key value)` pairs.
   If the keys are strings, note that in many Lisp dialects, `(assoc)` with a string key won't match unless `equal` is used.
@@ -152,10 +155,9 @@ SBCL is free software, provided as is, with absolutely no warranty.
 It is mostly in the public domain; some portions are provided under
 BSD-style licenses.  See the CREDITS and COPYING files in the
 distribution for more information.
-PASS: (test (FIELD 'STRUCT DATA) FOO)
 PASS: (test (FIELD 'BAR DATA) "hogehoge")
 PASS: (test (FIELD 'BAZ DATA) 0.1)
-PASS: (test (FIELD 'QUX DATA) #(1 2 3 4))
+PASS: (test (FIELD 'QUX DATA) (1 2 3 4))
 PASS: (test (FIELD "ahaha" M) 1)
 PASS: (test (FIELD "ihihi" M) 2)
 PASS: (test (FIELD "ufufu" M) 3)
@@ -202,10 +204,9 @@ These are the supporting Lisp files used for the SBCL test:
       (field key (cdr m)))))
 
 (let ((data (read (standard-input) nil nil)))
-  (test (field 'struct data) 'Foo)
   (test (field 'bar data) "hogehoge")
   (test (field 'baz data) 0.1)
-  (test (field 'qux data) #(1 2 3 4))
+  (test (field 'qux data) '(1 2 3 4))
   (let ((m (field 'quux data)))
     (test (field "ahaha" m) 1)
     (test (field "ihihi" m) 2)
@@ -231,10 +232,9 @@ go run example.go > sample.log
 echo "(load \"test-oki.lsp\")" | islisp
 > ISLisp  Version 0.80 (1999/02/25)
 >
-ISLisp>PASS: (test (FIELD (QUOTE STRUCT) DATA) FOO)
-PASS: (test (FIELD (QUOTE BAR) DATA) "hogehoge")
+ISLisp>PASS: (test (FIELD (QUOTE BAR) DATA) "hogehoge")
 PASS: (test (FIELD (QUOTE BAZ) DATA) 0.1)
-PASS: (test (FIELD (QUOTE QUX) DATA) #(1 2 3 4))
+PASS: (test (FIELD (QUOTE QUX) DATA) (1 2 3 4))
 PASS: (test (FIELD "ahaha" M) 1)
 PASS: (test (FIELD "ihihi" M) 2)
 PASS: (test (FIELD "ufufu" M) 3)
@@ -272,10 +272,9 @@ Result:
 
 ```make test-gmnlisp|
 go run example.go | gmnlisp test.lsp
-PASS: (test (FIELD 'STRUCT DATA) FOO)
 PASS: (test (FIELD 'BAR DATA) "hogehoge")
 PASS: (test (FIELD 'BAZ DATA) 0.100000)
-PASS: (test (FIELD 'QUX DATA) #(1 2 3 4))
+PASS: (test (FIELD 'QUX DATA) (1 2 3 4))
 PASS: (test (FIELD "ahaha" M) 1)
 PASS: (test (FIELD "ihihi" M) 2)
 PASS: (test (FIELD "ufufu" M) 3)
