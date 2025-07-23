@@ -6,7 +6,7 @@ import (
 	"github.com/hymkor/sxencode-go/parser"
 )
 
-type Symbol struct {
+type symbolT struct {
 	Value string
 }
 
@@ -30,7 +30,7 @@ var parser1 = &parser.Parser[any]{
 	},
 	Keyword: func(s string) any { return s },
 	Rune:    func(r rune) any { return r },
-	Symbol:  func(s string) any { return Symbol{Value: s} },
+	Symbol:  func(s string) any { return symbolT{Value: s} },
 	Null:    func() any { return nil },
 	True:    func() any { return true },
 }
