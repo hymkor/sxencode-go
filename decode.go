@@ -103,6 +103,8 @@ func (D *Decoder) decode(sxpr any, value reflect.Value) error {
 	case reflect.String:
 		if v, ok := sxpr.(string); ok {
 			value.SetString(v)
+		} else if v, ok := sxpr.(symbolT); ok {
+			value.SetString(v.Value)
 		}
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 		if v, ok := sxpr.(int64); ok {
