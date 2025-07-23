@@ -73,13 +73,19 @@ func (D *Decoder) decode(sxpr any, value reflect.Value) error {
 		types := value.Type()
 		fields := reflect.VisibleFields(types)
 		for _, sxpr1 := range pairs {
-			if sxkey, ok := sxpr1.Car.(symbolT); ok {
-				for i, field1 := range fields {
-					tag := tagInfo(&field1)
-					if !tag.noName && strings.EqualFold(sxkey.Value, tag.name) {
-						D.decode(sxpr1.Cdr, value.Field(i))
-						break
-					}
+			var key string
+			if v, ok := sxpr1.Car.(symbolT); ok {
+				key = v.Value
+			} else if v, ok := sxpr1.Car.(string); ok {
+				key = v
+			} else {
+				continue
+			}
+			for i, field1 := range fields {
+				tag := tagInfo(&field1)
+				if !tag.noName && strings.EqualFold(key, tag.name) {
+					D.decode(sxpr1.Cdr, value.Field(i))
+					break
 				}
 			}
 		}
