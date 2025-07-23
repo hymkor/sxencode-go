@@ -1,3 +1,7 @@
+v0.2.1
+------
+Jul 24, 2025
+
 - Symbol can now be decoded into a string variable.
 
 v0.2.0
