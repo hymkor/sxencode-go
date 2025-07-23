@@ -10,7 +10,7 @@ test-oki:
 	echo "(load \"test-oki.lsp\")" | islisp
 
 test-sbcl:
-	go run example.go | sbcl --load "test-sbcl.lsp"
+	go run example.go | sbcl --script "test-sbcl.lsp"
 
 test-marshal:
 	go run example-marshal.go | gmnlisp test.lsp
