@@ -76,8 +76,8 @@ func (D *Decoder) decode(sxpr any, value reflect.Value) error {
 		for _, sxpr1 := range sxprs[1:] {
 			if sxkey, ok := sxpr1.Car.(Symbol); ok {
 				for i, field1 := range fields {
-					stname, _ := nameAndOmit(&field1)
-					if strings.EqualFold(sxkey.Value, stname) {
+					tag := tagInfo(&field1)
+					if strings.EqualFold(sxkey.Value, tag.name) {
 						D.decode(sxpr1.Cdr, value.Field(i))
 						break
 					}

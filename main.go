@@ -85,18 +85,28 @@ func sxprTags(t *reflect.StructField) []string {
 	return strings.Split(tag, ",")
 }
 
-func nameAndOmit(t *reflect.StructField) (name string, omitempty bool) {
-	name = t.Name
+type tagInfoT struct {
+	name      string
+	omitEmpty bool
+	tags      []string
+}
+
+func tagInfo(t *reflect.StructField) (r *tagInfoT) {
+	r = &tagInfoT{
+		name: t.Name,
+	}
 	tags := sxprTags(t)
 	if len(tags) <= 0 {
 		return
 	}
 	if tags[0] != "" {
-		name = tags[0]
+		r.name = tags[0]
 	}
 	for _, tag1 := range tags[1:] {
 		if tag1 == "omitempty" {
-			omitempty = true
+			r.omitEmpty = true
+		} else {
+			r.tags = append(r.tags, tag1)
 		}
 	}
 	return
@@ -134,9 +144,9 @@ func (enc *Encoder) encode(value reflect.Value) error {
 			}
 			fieldValue := value.Field(i)
 
-			name, omitempty := nameAndOmit(&t)
+			tag := tagInfo(&t)
 
-			if omitempty && fieldValue.IsZero() {
+			if tag.omitEmpty && fieldValue.IsZero() {
 				continue
 			}
 
@@ -144,8 +154,8 @@ func (enc *Encoder) encode(value reflect.Value) error {
 			if err != nil {
 				return err
 			}
-			if s != "" && name != "-" {
-				if _, err := fmt.Fprintf(enc.w, "(%s %s)", name, s); err != nil {
+			if s != "" && tag.name != "-" {
+				if _, err := fmt.Fprintf(enc.w, "(%s %s)", tag.name, s); err != nil {
 					return err
 				}
 			}
