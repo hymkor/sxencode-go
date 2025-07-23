@@ -1,3 +1,9 @@
+- Made the delimiters for slices configurable via VectorOpen and VectorClose. The default was changed from `#(` and `)` to `(` and `)`.
+- Implemented the `noname` tag option, which serializes the field as a standalone value instead of a `(name value)` pair.
+- Removed the `(struct NAME)` format for struct names, as it was ultimately unused during decoding.
+- Removed the `Name` type.
+- Struct fields can now be decoded from both `(SYMBOL value)` and `("STRING" value)` forms.
+
 v0.1.0
 -------
 Jul 23, 2025
