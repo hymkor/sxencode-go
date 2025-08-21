@@ -1,6 +1,7 @@
 package sxencode
 
 import (
+	"bufio"
 	"bytes"
 	"io"
 	"reflect"
@@ -17,8 +18,12 @@ func Unmarshal(data []byte, v any) error {
 	return dec.Decode(v)
 }
 
-func NewDecoder(r io.RuneScanner) *Decoder {
-	return &Decoder{r: r}
+func NewDecoder(r io.Reader) *Decoder {
+	rs, ok := r.(io.RuneScanner)
+	if !ok {
+		rs = bufio.NewReader(r)
+	}
+	return &Decoder{r: rs}
 }
 
 func (D *Decoder) Decode(v any) error {
