@@ -1,3 +1,6 @@
+- Updated `NewDecoder(r)` so that if `r` does not implement `io.RuneScanner`, it is automatically wrapped with `bufio.NewReader(r)`. As a result, users no longer need to wrap it manually.
+- Updated the parser to match gmnlisp v0.7.22. Added fields such as `Function`, `Unquote`, `Quote`, and `Quasi` to the `parser.Parser` struct, allowing customization of how expressions like `#'`, `'`, `` ` ``, and `,` are turned into S-expressions (this does not affect the `sxencode` package specification itself).
+
 v0.2.1
 ------
 Jul 24, 2025

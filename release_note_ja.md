@@ -1,3 +1,6 @@
+- `NewDecoder(r)` の `r` が `io.RuneScanner` の要件を満たしていない場合、`r` の代わりに `bufio.NewReader(r)` を用いるようにした。そのため、ユーザが明示的に `bufio.NewReader` を使う必要はなくなった。
+- パーサーを gmnlisp v0.7.22 相当に更新。`parser.Parser` 構造体に `Function`, `Unquote`, `Quote`, `Quasi` などのフィールドを追加し、`#'`, `'`, `` ` ``, `,`  などが現れたときの S 式化の方法を指定できるようにした（ただし `sxencode` パッケージ自体の仕様には関係しない）。
+
 v0.2.1
 ------
 Jul 24, 2025
