@@ -346,6 +346,7 @@ func (p *Parser[N]) readNode(rs io.RuneScanner) (N, error) {
 				case '"':
 					buffer.WriteByte('"')
 				default:
+					buffer.WriteByte('\\')
 					buffer.WriteRune(c)
 				}
 				backSlash = false
