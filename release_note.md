@@ -1,3 +1,5 @@
+- Fixed an issue in the parser where a standalone backslash (`\`) inside a string literal (neither `\\` nor `\"`) was being dropped. Although such a literal is invalid in ISLisp, many other Lisp systems accept it, and dropping the backslash made it impossible to handle properly.
+
 v0.2.2
 ------
 Aug 22, 2025
