@@ -1,3 +1,7 @@
+* Refactored the `parser` subpackage:
+  * Removed the callback functions `Int`, `BigInt`, and `Float`, and added a unified `Number` callback that takes a string argument. As a result, importing `math/big` is no longer required by callers.
+  * Changed the `String` callback specification to receive the raw string before backslash interpretation or newline conversion. This allows callers to handle backslash sequences in their own way.
+
 v0.2.3
 ------
 Aug 31, 2025
