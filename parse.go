@@ -3,6 +3,7 @@ package sxencode
 import (
 	"regexp"
 	"strconv"
+	"strings"
 
 	"github.com/hymkor/sxencode-go/parser"
 )
@@ -54,6 +55,11 @@ func tryParseAsNumber(token string) (any, bool, error) {
 	return nil, false, nil
 }
 
+var rawStringToLispString = strings.NewReplacer(
+	`\\`, `\`,
+	`\"`, `"`,
+)
+
 type symbolT struct {
 	Value string
 }
@@ -65,8 +71,8 @@ type consT struct {
 
 var parser1 = &parser.Parser[any]{
 	Cons:   func(car, cdr any) any { return &consT{Car: car, Cdr: cdr} },
-	String: func(s string) any { return s },
 	Number: tryParseAsNumber,
+	String: func(s string) any { return rawStringToLispString.Replace(s) },
 	Array: func(list []any, dim []int) any {
 		array := make([]any, len(list))
 		for i, v := range list {
