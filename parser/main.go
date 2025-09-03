@@ -8,7 +8,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"math/big"
 	"regexp"
 	"strconv"
 	"strings"
@@ -16,14 +15,8 @@ import (
 )
 
 var (
-	rxFloat1     = regexp.MustCompile(`^[\-\+]?[0-9]+\.[0-9]+([eE][\-\+]?\d+)?$`)
-	rxFloat2     = regexp.MustCompile(`^[\-\+]?[0-9]+[eE][-+]?\d+$`)
-	rxInteger    = regexp.MustCompile(`^[\-\+]?[0-9]+$`)
-	rxHexInteger = regexp.MustCompile(`^#[Xx][\+\-]?[0-9A-Fa-f]+$`)
-	rxOctInteger = regexp.MustCompile(`^#[Oo][\+\-]?[0-7]+$`)
-	rxBinInteger = regexp.MustCompile(`^#[Bb][\+\-]?[01]+$`)
-	rxArray      = regexp.MustCompile(`^#(\d*)[aA]\(`)
-	rx0Array     = regexp.MustCompile(`^#0[aA]`)
+	rxArray  = regexp.MustCompile(`^#(\d*)[aA]\(`)
+	rx0Array = regexp.MustCompile(`^#0[aA]`)
 )
 
 var (
@@ -42,10 +35,9 @@ var (
 // Users must provide constructor functions for various Lisp data types (e.g., Int, Symbol, Cons).
 
 type Parser[N comparable] struct {
-	Cons    func(N, N) N       // Cons constructs a cons cell from two objects.
-	Int     func(int64) N      // Int constructs an integer object from an int64 value.
-	BigInt  func(*big.Int) N   // BigInt constructs an integer object from a *big.Int value.
-	Float   func(float64) N    // Float constructs a floating-point object from a float64 value.
+	Cons    func(N, N) N  // Cons constructs a cons cell from two objects.
+	Int     func(int64) N // Int constructs an integer object from an int64 value.
+	Number  func(string) (N, bool, error)
 	String  func(string) N     // String constructs a string object from a Go string.
 	Symbol  func(string) N     // Symbol constructs a symbol object from a Go string.
 	Array   func([]N, []int) N // Array constructs an array object from a flat list of elements and their dimensions.
@@ -136,66 +128,6 @@ func (p *Parser[N]) readArray(lenDim int, rs io.RuneScanner) (N, error) {
 	} else {
 		return p.Array(nodes, dim), nil
 	}
-}
-
-func (p *Parser[N]) tryParseAsFloat(token string) (N, bool, error) {
-	if !rxFloat1.MatchString(token) && !rxFloat2.MatchString(token) {
-		return p.Null(), false, nil
-	}
-	val, err := strconv.ParseFloat(token, 64)
-	if err != nil {
-		return p.Null(), true, err
-	}
-	return p.Float(val), true, nil
-}
-
-func (p *Parser[N]) tryParseAsInt(token string) (N, bool, error) {
-	var val int64
-	var err error
-	var base = 10
-	if rxInteger.MatchString(token) {
-		val, err = strconv.ParseInt(token, 10, 64)
-	} else if rxHexInteger.MatchString(token) {
-		base = 16
-		val, err = strconv.ParseInt(token[2:], 16, 64)
-	} else if rxOctInteger.MatchString(token) {
-		base = 8
-		val, err = strconv.ParseInt(token[2:], 8, 64)
-	} else if rxBinInteger.MatchString(token) {
-		base = 2
-		val, err = strconv.ParseInt(token[2:], 2, 64)
-	} else {
-		return p.Null(), false, nil
-	}
-	if err != nil {
-		var numError *strconv.NumError
-		if errors.As(err, &numError) {
-			if errors.Is(numError.Err, strconv.ErrRange) {
-				var v big.Int
-				if _, ok := v.SetString(numError.Num, base); ok {
-					return p.BigInt(&v), true, nil
-				}
-			}
-		}
-		return p.Null(), true, fmt.Errorf("%s: %w", token, err)
-	}
-	return p.Int(val), true, nil
-}
-
-func (p *Parser[N]) tryParseAsNumber(token string) (N, bool, error) {
-	if val, ok, err := p.tryParseAsInt(token); ok {
-		if err != nil {
-			return p.Null(), true, err
-		}
-		return val, true, nil
-	}
-	if val, ok, err := p.tryParseAsFloat(token); ok {
-		if err != nil {
-			return p.Null(), true, err
-		}
-		return val, true, nil
-	}
-	return p.Null(), false, nil
 }
 
 func (p *Parser[N]) readUntilCloseParen(rs io.RuneScanner) ([]N, error) {
@@ -299,8 +231,10 @@ func (p *Parser[N]) readNode(rs io.RuneScanner) (N, error) {
 	if len(token) > 0 && (token[0] == ':' || token[0] == '&') {
 		return p.Keyword(token), nil
 	}
-	if val, ok, err := p.tryParseAsNumber(token); ok {
-		return val, err
+	if len(token) > 0 && strings.IndexByte("0123456789+-#", token[0]) >= 0 {
+		if val, ok, err := p.Number(token); ok {
+			return val, err
+		}
 	}
 	if strings.HasPrefix(token, "#\\") {
 		var val rune
@@ -389,14 +323,8 @@ func (p *Parser[N]) init() {
 		if p.Cons == nil {
 			panic("Parser.Cons is not set")
 		}
-		if p.Int == nil {
+		if p.Number == nil {
 			panic("Parser.Int is not set")
-		}
-		if p.BigInt == nil {
-			panic("Parser.BigInt is not set")
-		}
-		if p.Float == nil {
-			panic("Parser.Float is not set")
 		}
 		if p.String == nil {
 			panic("Parser.String is not set")
@@ -448,14 +376,4 @@ func (p *Parser[N]) init() {
 func (p *Parser[N]) Read(rs io.RuneScanner) (N, error) {
 	p.init()
 	return p.readNode(rs)
-}
-
-// TryParseAsNumber attempts to parse a token as a numeric value.
-// If successful, it returns a numeric object created via the Int, BigInt, or Float constructor,
-// along with true.
-// If the token does not match a numeric format, it returns the result of Null() and false.
-// An error is returned only when numeric parsing fails due to an internal format error.
-func (p *Parser[N]) TryParseAsNumber(token string) (N, bool, error) {
-	p.init()
-	return p.tryParseAsNumber(token)
 }
